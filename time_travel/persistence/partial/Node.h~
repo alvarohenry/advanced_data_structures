@@ -10,20 +10,19 @@ class Node {
 		int version;
 		Node<T>* next;
 		Node<T>* backpointer;	// p
-		T* modData;
+		T* modsData;
 		Node<T> *modPointer;	// 2p
 		
-		Node<T>(const T& d, int ver) : data(d), next(0), version(ver), modData(0), modPointer(0) {}
+		Node<T>(const T& d, int ver) : data(d), next(), version(ver) {}
 
-		bool addModValue(T* value) ;
-		bool addModPointer(Node<T> *pointer) ;
+		bool addMod(T value);
 		T getDataAtVersion(int version);
 };
 
 template<class T>
 bool Node<T>::addModValue(T* value) {
-	if (modData == NULL) {
-		modData = value;
+	if (modsData == NULL) {
+		modsData = value;
 		return true;
 	} 
 	return false;
@@ -32,7 +31,7 @@ bool Node<T>::addModValue(T* value) {
 template<class T>
 bool Node<T>::addModPointer(Node<T>* pointer) {
 	if (modPointer == NULL) {
-		modPointer = pointer;
+		modsPointer = pointer;
 		return true;
 	} 
 	return false;

@@ -18,17 +18,14 @@ class PPLinkedList {
 		void insertToTail(T val);
 		void insertAt(int position, T val);
 
-		T searchVersion(int version, Node<T> *p);
-
 		int getSize() { return size;}
 		
 		Node<T>* getNodeAt(int position);
 		T readNode(T value, int version);// leer el dato value en la version v
-		void updateNode(T value, T newvalue);
+		void updateNode(int position, T value);
 		//void deleteNode(int position)
 
 		void print();
-		void printLastV();
 };
 
 template<class T>
@@ -91,65 +88,54 @@ void PPLinkedList<T>::print() {
 }	
 
 template<class T>
-void PPLinkedList<T>::printLastV() {
-	Node<T> *current = head;
-	while (current) {
-		if (current->modData)
-			cout << *(current->modData) << "," << current->version+1 << endl;
-		else
-			cout << current->data << "," << current->version << endl;	
-		if (current->modPointer)
-			current = current->modPointer;
-		else
-			current = current->next;	
-	}
-	cout << "NULL" << endl;
-}	
-
-template<class T>
 T PPLinkedList<T>::readNode(T value, int version) {
     Node<T> *p = head;
     while (p) {
-        if ((p->modData != 0 && *p->modData == value) || p->modData == NULL && p->data == value) // buscar la version
-            return searchVersion(version, p);        
+        if (p->data == value || p->modsData == value) // buscar la version
+            return searchVersion(version);        
         else
             if (p->modPointer != NULL)
                 p = p->modPointer;
             else
                 p = p->next;
     }
-}
 
-template<class T>
-T PPLinkedList<T>::searchVersion(int version, Node<T> *p) {
-    int nOldNodes = p->version/2;
-    int backSteps = nOldNodes - version%2;
-    for (int i = 1; i <= backSteps; i++) {
-		p = p->backpointer->next;
+/*
+	if (position >= size) {
+		return NULL;
 	}
-	return version%2 == 0 ? p->modData : p->data;
+	Node<T> *temp = getNodeAt(position);
+	return temp->getDataAtVersion(version);*/
 }
 
 template<class T>
-void PPLinkedList<T>::updateNode(T value, T newValue) {	
-	cout << "asdfadfadsfa";
-    Node<T> *p = head;
-    while (p) {
-		cout << "asdfadfadsfa";
-        if (p->modData == 0 && p->data == value) {
-			p->modData = new T;
-			*(p->modData) = newValue;
-		} else {
-			if (*p->modData == value) {
-				Node<T> *newNode = new Node<T>(newValue,p->version+2);
-				newNode->next = p->next;
-				newNode->backpointer = p->backpointer;
-				if (newNode->next != NULL)
-					newNode->next->backpointer = newNode;
-				if (newNode->backpointer != NULL)
-					newNode->backpointer->modPointer = newNode;
-			}
-		}
+Node<T>* PPLinkedList<T>::getNodeAt(int position) {
+	Node<T> *temp = head;
+	for (int i = 0; i != position; i++) {
+		temp = temp->next;
+	}
+	return temp;
+}
+
+template<class T>
+void PPLinkedList<T>::updateNode(int position, T value) {	
+	if (position >= size) {
+		return;
+	}
+	Node<T> *temp = getNodeAt(position);
+	if (!temp->isNodeFull()) {
+		temp->addMod(value);
+	} else {
+		Node<T> *newNode = new Node<T>(value, 3);
+		// copy latest version of each field (data and pointers)
+		newNode->next = temp->next; 		
+		// copy backpointers to n'
+		newNode->backpointer = temp->backpointer;		
+		// n points to x -> redirect its backpointers to n'
+		temp->next->backpointer = newNode;
+		// x points to n -> call write (x.p, n') recursively
+		
+		cout << "EL NODO ESTA FULLL" << endl;
 	}	
 }
 
