@@ -1,17 +1,27 @@
 #include "PPLinkedList.h"
 
 int main() {
-	PPLinkedList<int> ll1(new Node<int>(7, 0));
-	ll1.insertToHead(4);
-	ll1.insertToTail(10);
-	ll1.insertToTail(12);
-	
-	ll1.printLastV();
-		
-	ll1.updateNode(10, 1888);
-	//ll1.updateNode(1888, 1234);
+	PPLinkedList<int> list;
 
-	ll1.printLastV();
-	//ll1.updateNode(2, 82);
+	list.insertToTail(10);
+	list.insertToTail(20);
+	list.insertToTail(30);
 
+	list.printLastV();
+
+	list.updateNode(20, 80);
+	cout << "nodo en la version 0 : " << list.readNode(80, 0) << endl ;
+	cout << "nodo en la version 1 : " << list.readNode(80, 1) << endl ;
+	list.updateNode(80, 100);
+
+	cout << "nodo en la version 0 : " << list.readNode(100, 0) << endl ;
+	cout << "nodo en la version 1 : " << list.readNode(100, 1) << endl ;
+	cout << "nodo en la version 2 : " << list.readNode(100, 2) << endl ;
+
+	list.updateNode(100, 99);
+	cout << "nodo en la version 3 : " << list.readNode(100, 3) << endl ;
+
+
+	list.printLastV();
 }
+

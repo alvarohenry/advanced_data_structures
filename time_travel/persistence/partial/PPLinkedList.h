@@ -1,156 +1,121 @@
-
 #include <iostream>
 #include "Node.h"
 
 using namespace std;
 
-// PP means partial persistence
 template<class T>
 class PPLinkedList {
 	public:
-		Node<T> *head;
-		Node<T> *tail;
-		long size;
+		Node<T>* head;
+		Node<T>* tail;
 
-		PPLinkedList(): head(NULL), tail(NULL), size(0) {}
-		PPLinkedList(Node<T>* newNode) : head(newNode), tail(newNode), size(1) {}
-		void insertToHead(T val);
+		PPLinkedList(): head(NULL), tail(NULL) {}
+		PPLinkedList(Node<T>* newNode) : head(newNode), tail(newNode) {}
+
 		void insertToTail(T val);
-		void insertAt(int position, T val);
-
-		T searchVersion(int version, Node<T> *p);
-
-		int getSize() { return size;}
-		
-		Node<T>* getNodeAt(int position);
-		T readNode(T value, int version);// leer el dato value en la version v
-		void updateNode(T value, T newvalue);
-		//void deleteNode(int position)
-
-		void print();
 		void printLastV();
+		T readNode(T value, int version);
+		T searchVersion(int version, Node<T>* temp);
+		void updateNode(T value, T newValue);
+
 };
 
 template<class T>
 void PPLinkedList<T>::insertToTail(T val) {
-	Node<T> *newNode = new Node<T>(val, 0);
+	Node<T>* newNode = new Node<T>(val, 0);
 	if (tail == NULL) {
-		newNode->next = tail;
 		tail = newNode;
 		head = newNode;
 	}
+	newNode->back_pointer = tail;
 	tail->next = newNode;
-	tail = tail->next;
-	size++;
+	tail = newNode;
 }
-
-
-template<class T>
-void PPLinkedList<T>::insertToHead(T val) {
-	Node<T> *newNode = new Node<T>(val, 0);
-	newNode->next = head;
-	head = newNode;
-	if (head->next == NULL) {
-		tail = newNode;
-	}
-	size++;
-}
-
-template<class T>
-void PPLinkedList<T>::insertAt(int position, T val) {
-	if (position >= size) {
-		return;
-	}
-	if (position == 0) {
-		insertToHead(val);
-		return;
-	}
-	if (position == size - 1) {	
-		insertToTail(val);
-		return;
-	}
-	Node<T> *temp = head;
-	while (position != 1) {
-		temp = temp->next;
-		position--;
-	}
-	Node<T> *newNode = new Node<T>(val, 0);
-	newNode->next = temp->next;
-	temp->next = newNode;
-	size++;
-}
-
-template<class T>
-void PPLinkedList<T>::print() {
-	Node<T> *current = head;
-	while (current) {
-		cout << current->data << " --> ";
-		current = current->next;
-	}
-	cout << "NULL" << endl;
-}	
 
 template<class T>
 void PPLinkedList<T>::printLastV() {
-	Node<T> *current = head;
+	Node<T>* current = head;
 	while (current) {
-		if (current->modData)
-			cout << *(current->modData) << "," << current->version+1 << endl;
+		if (current->mod_data)
+			cout << *(current->mod_data) << " , " << current->version+1 << endl;
 		else
-			cout << current->data << "," << current->version << endl;	
-		if (current->modPointer)
-			current = current->modPointer;
+			cout << current->data << " , " << current->version << endl;	
+		if (current->mod_pointer)
+			current = current->mod_pointer;
 		else
 			current = current->next;	
 	}
-	cout << "NULL" << endl;
+	cout << "NULL" << endl << endl;
 }	
 
 template<class T>
 T PPLinkedList<T>::readNode(T value, int version) {
-    Node<T> *p = head;
-    while (p) {
-        if ((p->modData != 0 && *p->modData == value) || p->modData == NULL && p->data == value) // buscar la version
-            return searchVersion(version, p);        
-        else
-            if (p->modPointer != NULL)
-                p = p->modPointer;
-            else
-                p = p->next;
-    }
-}
-
-template<class T>
-T PPLinkedList<T>::searchVersion(int version, Node<T> *p) {
-    int nOldNodes = p->version/2;
-    int backSteps = nOldNodes - version%2;
-    for (int i = 1; i <= backSteps; i++) {
-		p = p->backpointer->next;
-	}
-	return version%2 == 0 ? p->modData : p->data;
-}
-
-template<class T>
-void PPLinkedList<T>::updateNode(T value, T newValue) {	
-	cout << "asdfadfadsfa";
-    Node<T> *p = head;
-    while (p) {
-		cout << "asdfadfadsfa";
-        if (p->modData == 0 && p->data == value) {
-			p->modData = new T;
-			*(p->modData) = newValue;
+	Node<T>* temp = head;
+	while(temp) {
+		if((temp->mod_data != NULL && *(temp->mod_data) == value) || 
+						(temp->mod_data == NULL && temp->data == value)) {
+			// estoy en el nodo, ahora busco la version
+			return searchVersion(version, temp);
 		} else {
-			if (*p->modData == value) {
-				Node<T> *newNode = new Node<T>(newValue,p->version+2);
-				newNode->next = p->next;
-				newNode->backpointer = p->backpointer;
-				if (newNode->next != NULL)
-					newNode->next->backpointer = newNode;
-				if (newNode->backpointer != NULL)
-					newNode->backpointer->modPointer = newNode;
+			// busco el valor VALUE en otros nodos hasta encontrarlo
+			if (temp->mod_pointer != NULL) {
+				temp = temp->mod_pointer;
+			} else {
+				temp = temp->next;
 			}
 		}
-	}	
+	}
 }
 
+template<class T>
+void PPLinkedList<T>::updateNode(T value, T newValue) {
+	Node<T>* temp = head;
+	while (temp) {
+		//cout << "en el while" << value << " , newValue " << newValue << endl;
+		if((temp->mod_data != NULL && *(temp->mod_data) == value) || 
+						(temp->mod_data == NULL && temp->data == value)) {
+			// estoy en el nodo, adiciono la modificacion o creo un nuevo nodo version
+			//cout << "EN EL NODO " << temp->data << " , " << newValue << endl;
+			if (temp->mod_data == NULL && temp->data == value) {
+				temp->addModValue(newValue);
+				break;
+			} else {
+				cout << "EL CASO MAS FODAAAA" << endl;
+				Node<T>* newNode = new Node<T>(newValue, temp->version+2);
+				newNode->next = temp->next;
+				newNode->back_pointer = temp->back_pointer;
+				if (newNode->next != NULL)
+					newNode->next->back_pointer = newNode;
+				if (newNode->back_pointer != NULL)
+					newNode->back_pointer->mod_pointer = newNode;
+				break;
+			}
+
+		} else {
+			// busco el valor VALUE en otros nodos hasta encontrarlo
+			if (temp->mod_pointer != NULL) {
+				temp = temp->mod_pointer;
+			} else {
+				temp = temp->next;
+			}
+		}
+	}
+}
+
+template<class T>
+T PPLinkedList<T>::searchVersion(int version, Node<T>* temp) {
+	if (version > temp->version)
+		return temp->mod_data == NULL ? temp->data : *(temp->mod_data);
+	int nOldNodes = temp->version / 2;
+	int backSteps = nOldNodes - version/2;
+	cout << "nOldNodes : " << nOldNodes << " backSteps : " << backSteps << endl; 
+	for (int i = 0; i < backSteps; i++) {
+		cout << "datos del temp : " << temp->data << endl;
+		temp = temp->back_pointer->next;
+	}
+	if (version%2 == 0) {
+		return temp->data;
+	}
+	return *(temp->mod_data);
+}
 
